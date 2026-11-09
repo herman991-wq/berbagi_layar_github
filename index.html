@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Screen Share & Recorder</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Tailwind slate-50 */
+            color: #0f172a; /* Tailwind slate-900 */
+        }
+        
+        /* Custom Scrollbar for a polished look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        /* Toast Container */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            min-width: 250px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transform: translateX(120%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .toast.show {
+            transform: translateX(0);
+        }
+        .toast.error { background-color: #ef4444; }
+        .toast.success { background-color: #10b981; }
+        .toast.info { background-color: #3b82f6; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 py-4 px-6 flex justify-between items-center shadow-sm z-10">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-600 p-2 rounded-lg text-white flex items-center justify-center h-10 w-10">
+                <i class="fa-solid fa-desktop text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight text-gray-800">ScreenCast Pro</h1>
+                <p class="text-xs text-gray-500">Berbagi & Rekam Layar Lokal</p>
+            </div>
+        </div>
+        <div id="status-indicator" class="hidden items-center gap-2 bg-gray-100 py-1.5 px-3 rounded-full border border-gray-200">
+            <div class="w-2.5 h-2.5 rounded-full bg-red-500 pulse-animation"></div>
+            <span class="text-sm font-medium text-gray-700" id="status-text">Sedang Membagikan Layar</span>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col p-4 md:p-8 bg-gray-50 relative">
+        
+        <!-- Video Container -->
+        <div class="flex-1 w-full max-w-6xl mx-auto bg-gray-900 rounded-2xl border border-gray-200 shadow-xl overflow-hidden relative flex items-center justify-center group">
+            
+            <!-- Placeholder when not sharing -->
+            <div id="video-placeholder" class="absolute inset-0 flex flex-col items-center justify-center z-10 bg-white/95 backdrop-blur-sm">
+                <div class="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mb-4 border border-gray-200">
+                    <i class="fa-solid fa-display text-4xl text-gray-400"></i>
+                </div>
+                <h2 class="text-2xl font-semibold text-gray-800 mb-2">Tidak ada layar yang dibagikan</h2>
+                <p class="text-gray-500 max-w-md text-center">Klik tombol "Mulai Berbagi Layar" di bawah untuk mulai menangkap tampilan layar, jendela, atau tab browser Anda.</p>
+            </div>
+
+            <!-- Video Player -->
+            <video id="screen-video" autoplay playsinline muted class="w-full h-full object-contain hidden"></video>
+
+            <!-- Recording Indicator Overlay -->
+            <div id="recording-overlay" class="hidden absolute top-4 right-4 bg-red-600/90 text-white px-3 py-1.5 rounded-md font-medium text-sm flex items-center gap-2 shadow-lg backdrop-blur-md z-20">
+                <div class="w-2 h-2 rounded-full bg-white pulse-animation"></div>
+                <span id="recording-time">00:00</span> REC
+            </div>
+        </div>
+
+        <!-- Controls Bar -->
+        <div class="w-full max-w-6xl mx-auto mt-6 bg-white rounded-xl p-4 flex flex-wrap items-center justify-center md:justify-between gap-4 border border-gray-200 shadow-sm">
+            
+            <div class="flex items-center gap-2">
+                <button id="btn-start-share" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 shadow-sm shadow-blue-900/10">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Mulai Berbagi Layar
+                </button>
+                <button id="btn-stop-share" disabled class="px-5 py-2.5 bg-gray-100 text-gray-400 rounded-lg font-medium transition-all flex items-center gap-2 cursor-not-allowed opacity-60">
+                    <i class="fa-solid fa-circle-stop"></i> Hentikan
+                </button>
+            </div>
+
+            <div class="h-8 w-px bg-gray-200 hidden md:block"></div>
+
+            <div class="flex items-center gap-2">
+                <button id="btn-start-record" disabled class="px-5 py-2.5 bg-gray-100 text-gray-400 rounded-lg font-medium transition-all flex items-center gap-2 cursor-not-allowed opacity-60">
+                    <i class="fa-solid fa-record-vinyl text-gray-400" id="icon-record"></i> Rekam Layar
+                </button>
+                <button id="btn-stop-record" disabled class="px-5 py-2.5 bg-gray-100 text-gray-400 rounded-lg font-medium transition-all flex items-center gap-2 cursor-not-allowed opacity-60 hidden">
+                    <i class="fa-solid fa-stop text-white"></i> Hentikan Rekaman
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Instructions/Info (Hidden by default) -->
+    <div id="info-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white border border-gray-200 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+            <button id="btn-close-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition-colors">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-circle-info text-blue-500"></i> Tentang Aplikasi Ini
+            </h3>
+            <div class="text-gray-600 space-y-3 text-sm leading-relaxed">
+                <p>Aplikasi ini menggunakan teknologi <strong>WebRTC</strong> untuk menangkap tampilan layar Anda langsung di dalam browser.</p>
+                <ul class="list-disc pl-5 space-y-1 text-gray-500">
+                    <li>Tidak ada perangkat lunak tambahan yang perlu diinstal.</li>
+                    <li>Privasi terjaga: Layar Anda diproses secara lokal dan tidak dikirim ke server manapun kecuali Anda membagikannya melalui layanan pihak ketiga.</li>
+                    <li>Anda dapat merekam sesi berbagi layar dan mengunduhnya dalam format WebM/MP4.</li>
+                </ul>
+                <p class="mt-4 pt-4 border-t border-gray-200 text-xs text-gray-400">
+                    *Untuk berbagi dengan orang lain di perangkat berbeda, diperlukan integrasi server *signaling* (seperti WebSocket/Socket.io) yang tidak dapat dijalankan hanya dengan file HTML mandiri ini.
+                </p>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button id="btn-understand" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition-colors">
+                    Mengerti
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const videoElement = document.getElementById('screen-video');
+        const videoPlaceholder = document.getElementById('video-placeholder');
+        const btnStartShare = document.getElementById('btn-start-share');
+        const btnStopShare = document.getElementById('btn-stop-share');
+        const btnStartRecord = document.getElementById('btn-start-record');
+        const btnStopRecord = document.getElementById('btn-stop-record');
+        const statusIndicator = document.getElementById('status-indicator');
+        const recordingOverlay = document.getElementById('recording-overlay');
+        const recordingTimeText = document.getElementById('recording-time');
+        const iconRecord = document.getElementById('icon-record');
+        
+        // Modal Elements
+        const infoModal = document.getElementById('info-modal');
+        const btnCloseModal = document.getElementById('btn-close-modal');
+        const btnUnderstand = document.getElementById('btn-understand');
+
+        // State Variables
+        let screenStream = null;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let recordingTimer = null;
+        let recordingSeconds = 0;
+
+        // --- Custom Toast Notification System ---
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let icon = 'fa-circle-info';
+            if(type === 'success') icon = 'fa-circle-check';
+            if(type === 'error') icon = 'fa-circle-exclamation';
+
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            // Trigger reflow to apply animation
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300); // Wait for transition
+            }, 3000);
+        }
+
+        // --- Core Screen Sharing Logic ---
+
+        // Start Screen Sharing
+        btnStartShare.addEventListener('click', async () => {
+            try {
+                // Request display media (Screen/Window/Tab)
+                screenStream = await navigator.mediaDevices.getDisplayMedia({
+                    video: {
+                        cursor: "always",
+                        displaySurface: "monitor"
+                    },
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        sampleRate: 44100
+                    }
+                });
+
+                // Set stream to video element
+                videoElement.srcObject = screenStream;
+                
+                // UI Updates
+                videoPlaceholder.classList.add('hidden');
+                videoElement.classList.remove('hidden');
+                
+                btnStartShare.disabled = true;
+                btnStartShare.className = "px-5 py-2.5 bg-gray-100 text-gray-400 rounded-lg font-medium transition-all flex items-center gap-2 cursor-not-allowed opacity-60 hidden md:flex";
+                
+                btnStopShare.disabled = false;
+                btnStopShare.className = "px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 shadow-sm shadow-red-900/10";
+
+                btnStartRecord.disabled = false;
+                btnStartRecord.className = "px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 shadow-sm shadow-emerald-900/10";
+                iconRecord.className = "fa-solid fa-record-vinyl text-white";
+
+                statusIndicator.classList.remove('hidden');
+                statusIndicator.classList.add('flex');
+
+                showToast("Berhasil membagikan layar", "success");
+
+                // Listen for user stopping stream via browser built-in UI (e.g., Chrome's "Stop sharing" bar)
+                screenStream.getVideoTracks()[0].addEventListener('ended', stopScreenSharing);
+
+            } catch (error) {
+                console.error("Error accessing display media:", error);
+                if (error.name === 'NotAllowedError') {
+                    if (error.message.includes('permissions policy') || error.message.includes('display-capture')) {
+                        showToast("Akses diblokir oleh sistem Preview.", "error");
+                        
+                        // Update UI to inform the user about the iframe limitation
+                        const placeholderTitle = document.querySelector('#video-placeholder h2');
+                        const placeholderText = document.querySelector('#video-placeholder p');
+                        
+                        if (placeholderTitle) placeholderTitle.innerText = "Akses Diblokir oleh Browser";
+                        if (placeholderText) {
+                            placeholderText.innerHTML = `
+                                <span class="text-red-500 font-medium">Browser memblokir fitur berbagi layar di dalam mode Preview (Iframe).</span><br><br>
+                                <strong>Solusi:</strong> Silakan ekspor/unduh file ini, atau jalankan file HTML ini langsung di tab/jendela browser baru untuk mengaktifkan fitur berbagi layar.
+                            `;
+                        }
+                    } else {
+                        showToast("Izin ditolak atau dibatalkan oleh pengguna", "error");
+                    }
+                } else {
+                    showToast("Gagal membagikan layar: " + error.message, "error");
+                }
+            }
+        });
+
+        // Stop Screen Sharing
+        function stopScreenSharing() {
+            if (!screenStream) return;
+
+            // Stop all tracks (video and audio)
+            let tracks = screenStream.getTracks();
+            tracks.forEach(track => track.stop());
+
+            // Clear video source
+            videoElement.srcObject = null;
+            screenStream = null;
+
+            // If recording was active, stop it
+            if (mediaRecorder && mediaRecorder.state === "recording") {
+                stopRecording();
+            }
+
+            // UI Updates
+            videoPlaceholder.classList.remove('hidden');
+            videoElement.classList.add('hidden');
+            
+            btnStartShare.disabled = false;
+            btnStartShare.className = "px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 shadow-sm shadow-blue-900/10";
+            
+            btnStopShare.disabled = true;
+            btnStopShare.className = "px-5 py-2.5 bg-gray-100 text-gray-400 rounded-lg font-medium transition-all flex items-center gap-2 cursor-not-allowed opacity-60";
+
+            btnStartRecord.disabled = true;
+            btnStartRecord.className = "px-5 py-2.5 bg-gray-100 text-gray-400 rounded-lg font-medium transition-all flex items-center gap-2 cursor-not-allowed opacity-60";
+            iconRecord.className = "fa-solid fa-record-vinyl text-gray-400";
+            
+            btnStopRecord.classList.add('hidden');
+            btnStartRecord.classList.remove('hidden');
+
+            statusIndicator.classList.add('hidden');
+            statusIndicator.classList.remove('flex');
+
+            showToast("Berbagi layar dihentikan", "info");
+        }
+
+        btnStopShare.addEventListener('click', stopScreenSharing);
+
+        // --- Recording Logic ---
+
+        function formatTime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            if (h > 0) {
+                return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }
+            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function startRecordingTimer() {
+            recordingSeconds = 0;
+            recordingTimeText.innerText = formatTime(recordingSeconds);
+            recordingOverlay.classList.remove('hidden');
+            
+            recordingTimer = setInterval(() => {
+                recordingSeconds++;
+                recordingTimeText.innerText = formatTime(recordingSeconds);
+            }, 1000);
+        }
+
+        function stopRecordingTimer() {
+            clearInterval(recordingTimer);
+            recordingOverlay.classList.add('hidden');
+        }
+
+        btnStartRecord.addEventListener('click', () => {
+            if (!screenStream) {
+                showToast("Mulai berbagi layar terlebih dahulu untuk merekam", "error");
+                return;
+            }
+
+            recordedChunks = [];
+            
+            // Determine supported mimeType
+            let mimeType = 'video/webm; codecs=vp9,opus';
+            if (!MediaRecorder.isTypeSupported(mimeType)) {
+                mimeType = 'video/webm; codecs=vp8,opus';
+                if (!MediaRecorder.isTypeSupported(mimeType)) {
+                    mimeType = 'video/webm'; // Fallback
+                }
+            }
+
+            try {
+                mediaRecorder = new MediaRecorder(screenStream, { mimeType: mimeType });
+            } catch (e) {
+                showToast("Browser tidak mendukung perekaman format ini.", "error");
+                return;
+            }
+
+            mediaRecorder.ondataavailable = function(e) {
+                if (e.data.size > 0) {
+                    recordedChunks.push(e.data);
+                }
+            };
+
+            mediaRecorder.onstop = function() {
+                const blob = new Blob(recordedChunks, {
+                    type: mimeType
+                });
+                
+                // Create download link
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                document.body.appendChild(a);
+                a.style = 'display: none';
+                a.href = url;
+                a.download = `Rekaman-Layar-${new Date().getTime()}.webm`;
+                a.click();
+                
+                // Cleanup
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                showToast("Rekaman berhasil diunduh!", "success");
+            };
+
+            mediaRecorder.start();
+            startRecordingTimer();
+
+            // UI Updates
+            btnStartRecord.classList.add('hidden');
+            
+            btnStopRecord.classList.remove('hidden');
+            btnStopRecord.disabled = false;
+            btnStopRecord.className = "px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 shadow-sm shadow-red-900/10";
+            
+            showToast("Perekaman dimulai", "info");
+        });
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state === "recording") {
+                mediaRecorder.stop();
+                stopRecordingTimer();
+
+                // UI Updates
+                btnStopRecord.classList.add('hidden');
+                
+                btnStartRecord.classList.remove('hidden');
+                btnStartRecord.disabled = false;
+                btnStartRecord.className = "px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 shadow-sm shadow-emerald-900/10";
+                iconRecord.className = "fa-solid fa-record-vinyl text-white";
+            }
+        }
+
+        btnStopRecord.addEventListener('click', stopRecording);
+
+
+        // --- Modal Logic ---
+        
+        // Show modal on first load (optional, currently triggered by user or auto)
+        setTimeout(() => {
+            infoModal.classList.remove('hidden');
+        }, 500);
+
+        function closeModal() {
+            infoModal.classList.add('hidden');
+        }
+
+        btnCloseModal.addEventListener('click', closeModal);
+        btnUnderstand.addEventListener('click', closeModal);
+        
+        // Close modal on outside click
+        infoModal.addEventListener('click', (e) => {
+            if (e.target === infoModal) closeModal();
+        });
+
+    </script>
+</body>
+</html>
