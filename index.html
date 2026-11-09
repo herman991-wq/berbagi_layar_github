@@ -121,26 +121,46 @@
         </div>
 
         <!-- Controls Bar -->
-        <div class="w-full max-w-6xl mx-auto mt-6 bg-white rounded-xl p-4 flex flex-wrap items-center justify-center md:justify-between gap-4 border border-gray-200 shadow-sm">
+        <div class="w-full max-w-6xl mx-auto mt-6 bg-white rounded-xl p-4 flex flex-col lg:flex-row items-center justify-between gap-6 border border-gray-200 shadow-sm">
             
-            <div class="flex items-center gap-2">
-                <button id="btn-start-share" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 shadow-sm shadow-blue-900/10">
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Mulai Berbagi Layar
+            <!-- Local Actions -->
+            <div class="flex flex-wrap items-center justify-center gap-2 border-b lg:border-b-0 lg:border-r border-gray-200 pb-4 lg:pb-0 lg:pr-6 w-full lg:w-auto">
+                <button id="btn-start-share" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition-all flex items-center gap-2 shadow-sm shadow-blue-900/10">
+                    <i class="fa-solid fa-display"></i> Mode Lokal
                 </button>
-                <button id="btn-stop-share" disabled class="px-5 py-2.5 bg-gray-100 text-gray-400 rounded-lg font-medium transition-all flex items-center gap-2 cursor-not-allowed opacity-60">
+                <button id="btn-stop-share" disabled class="px-4 py-2 bg-gray-100 text-gray-400 rounded-lg font-medium text-sm transition-all flex items-center gap-2 cursor-not-allowed opacity-60">
                     <i class="fa-solid fa-circle-stop"></i> Hentikan
+                </button>
+                <div class="w-px h-6 bg-gray-300 mx-2 hidden sm:block"></div>
+                <button id="btn-start-record" disabled class="px-4 py-2 bg-gray-100 text-gray-400 rounded-lg font-medium text-sm transition-all flex items-center gap-2 cursor-not-allowed opacity-60">
+                    <i class="fa-solid fa-record-vinyl" id="icon-record"></i> Rekam
+                </button>
+                <button id="btn-stop-record" disabled class="px-4 py-2 bg-gray-100 text-gray-400 rounded-lg font-medium text-sm transition-all flex items-center gap-2 cursor-not-allowed opacity-60 hidden">
+                    <i class="fa-solid fa-stop"></i> Berhenti Rekam
                 </button>
             </div>
 
-            <div class="h-8 w-px bg-gray-200 hidden md:block"></div>
-
-            <div class="flex items-center gap-2">
-                <button id="btn-start-record" disabled class="px-5 py-2.5 bg-gray-100 text-gray-400 rounded-lg font-medium transition-all flex items-center gap-2 cursor-not-allowed opacity-60">
-                    <i class="fa-solid fa-record-vinyl text-gray-400" id="icon-record"></i> Rekam Layar
-                </button>
-                <button id="btn-stop-record" disabled class="px-5 py-2.5 bg-gray-100 text-gray-400 rounded-lg font-medium transition-all flex items-center gap-2 cursor-not-allowed opacity-60 hidden">
-                    <i class="fa-solid fa-stop text-white"></i> Hentikan Rekaman
-                </button>
+            <!-- Online Actions (WebRTC) -->
+            <div class="flex flex-wrap items-center justify-center gap-3 w-full lg:w-auto">
+                <div id="online-controls" class="flex flex-wrap items-center justify-center gap-3 w-full sm:w-auto">
+                    <button id="btn-host" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-sm transition-all flex items-center gap-2 shadow-sm shadow-indigo-900/10">
+                        <i class="fa-solid fa-tower-broadcast"></i> Host Online
+                    </button>
+                    <span class="text-xs text-gray-400 font-medium uppercase tracking-wider">ATAU</span>
+                    <div class="flex items-center bg-gray-50 p-1 rounded-lg border border-gray-200">
+                        <input type="text" id="input-room-id" placeholder="Masukkan 5 Digit ID..." maxlength="5" class="w-40 px-3 py-1.5 text-sm rounded-md border-none focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-transparent text-center font-semibold tracking-widest">
+                        <button id="btn-join" class="px-4 py-1.5 bg-gray-800 hover:bg-gray-900 text-white rounded-md font-medium text-sm transition-all">
+                            Gabung
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="room-info" class="hidden items-center gap-3 bg-indigo-50 border border-indigo-200 px-4 py-2 rounded-lg w-full sm:w-auto justify-center">
+                    <span class="text-sm text-indigo-800 font-medium">Room: <strong id="display-room-id" class="text-lg tracking-widest text-indigo-950 mx-1">---</strong></span>
+                    <button id="btn-copy-room" class="text-indigo-600 hover:text-indigo-800 transition-colors p-1" title="Salin ID"><i class="fa-regular fa-copy text-lg"></i></button>
+                    <div class="w-px h-5 bg-indigo-200 mx-1"></div>
+                    <button id="btn-stop-online" class="text-red-500 hover:text-red-700 text-sm font-semibold flex items-center gap-1"><i class="fa-solid fa-power-off"></i> Tutup</button>
+                </div>
             </div>
         </div>
     </main>
@@ -166,305 +186,477 @@
                 </p>
             </div>
             <div class="mt-6 flex justify-end">
-                <button id="btn-understand" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition-colors">
-                    Mengerti
-                </button>
-            </div>
-        </div>
+        <button id="btn-understand" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition-colors">
+            Mengerti
+        </button>
     </div>
+</div>
+</div>
 
-    <script>
-        // DOM Elements
-        const videoElement = document.getElementById('screen-video');
-        const videoPlaceholder = document.getElementById('video-placeholder');
-        const btnStartShare = document.getElementById('btn-start-share');
-        const btnStopShare = document.getElementById('btn-stop-share');
-        const btnStartRecord = document.getElementById('btn-start-record');
-        const btnStopRecord = document.getElementById('btn-stop-record');
-        const statusIndicator = document.getElementById('status-indicator');
-        const recordingOverlay = document.getElementById('recording-overlay');
-        const recordingTimeText = document.getElementById('recording-time');
-        const iconRecord = document.getElementById('icon-record');
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // --- Firebase Setup (Signaling Server) ---
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'screencast-demo';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+    const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+    let app, auth, db, user;
+    
+    async function initFirebase() {
+        try {
+            // Cek apakah konfigurasi server tersedia
+            if (Object.keys(firebaseConfig).length === 0) {
+                console.warn("Berjalan dalam mode lokal tanpa konfigurasi server.");
+                return; // Hentikan inisialisasi server agar tidak crash
+            }
+
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+
+            // Dengarkan perubahan status otentikasi secara real-time
+            onAuthStateChanged(auth, (currentUser) => {
+                user = currentUser;
+            });
+
+            if (initialToken) {
+                await signInWithCustomToken(auth, initialToken).catch(() => signInAnonymously(auth));
+            } else {
+                await signInAnonymously(auth);
+            }
+        } catch(e) {
+            console.warn("Firebase Init Gagal. Fitur online mungkin tidak bekerja.", e);
+        }
+    }
+    initFirebase();
+
+    // DOM Elements
+    const videoElement = document.getElementById('screen-video');
+    const videoPlaceholder = document.getElementById('video-placeholder');
+    const btnStartShare = document.getElementById('btn-start-share');
+    const btnStopShare = document.getElementById('btn-stop-share');
+    const btnStartRecord = document.getElementById('btn-start-record');
+    const btnStopRecord = document.getElementById('btn-stop-record');
+    const statusIndicator = document.getElementById('status-indicator');
+    const recordingOverlay = document.getElementById('recording-overlay');
+    const recordingTimeText = document.getElementById('recording-time');
+    const iconRecord = document.getElementById('icon-record');
+    
+    // WebRTC DOM Elements
+    const btnHost = document.getElementById('btn-host');
+    const inputRoomId = document.getElementById('input-room-id');
+    const btnJoin = document.getElementById('btn-join');
+    const btnCopyRoom = document.getElementById('btn-copy-room');
+    const btnStopOnline = document.getElementById('btn-stop-online');
+    const onlineControls = document.getElementById('online-controls');
+    const roomInfo = document.getElementById('room-info');
+    
+    // Modal Elements
+    const infoModal = document.getElementById('info-modal');
+    const btnCloseModal = document.getElementById('btn-close-modal');
+    const btnUnderstand = document.getElementById('btn-understand');
+
+    // State Variables
+    let screenStream = null;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let recordingTimer = null;
+    let recordingSeconds = 0;
+
+    let peerConnection = null;
+    let currentRoomId = null;
+    let unsubscribeRoom = null;
+    const rtcConfig = {
+        iceServers: [
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' }
+        ]
+    };
+
+    // --- Custom Toast Notification System ---
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
         
-        // Modal Elements
-        const infoModal = document.getElementById('info-modal');
-        const btnCloseModal = document.getElementById('btn-close-modal');
-        const btnUnderstand = document.getElementById('btn-understand');
+        let icon = 'fa-circle-info';
+        if(type === 'success') icon = 'fa-circle-check';
+        if(type === 'error') icon = 'fa-circle-exclamation';
 
-        // State Variables
-        let screenStream = null;
-        let mediaRecorder = null;
-        let recordedChunks = [];
-        let recordingTimer = null;
-        let recordingSeconds = 0;
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+        
+        container.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
 
-        // --- Custom Toast Notification System ---
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
+    // --- Error Handler Helper ---
+    function handleScreenError(error) {
+        console.error("Screen Share Error:", error);
+        const errMsg = error.message || error.toString();
+        
+        if (errMsg.includes('permissions policy') || errMsg.includes('display-capture')) {
+            showToast("Akses diblokir oleh sistem Preview. Buka di tab baru.", "error");
             
-            let icon = 'fa-circle-info';
-            if(type === 'success') icon = 'fa-circle-check';
-            if(type === 'error') icon = 'fa-circle-exclamation';
-
-            toast.className = `toast ${type}`;
-            toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+            const videoPlaceholder = document.getElementById('video-placeholder');
+            const videoElement = document.getElementById('screen-video');
+            const placeholderTitle = document.querySelector('#video-placeholder h2');
+            const placeholderText = document.querySelector('#video-placeholder p');
             
-            container.appendChild(toast);
-            
-            // Trigger reflow to apply animation
-            setTimeout(() => {
-                toast.classList.add('show');
-            }, 10);
-
-            // Remove after 3 seconds
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => {
-                    toast.remove();
-                }, 300); // Wait for transition
-            }, 3000);
-        }
-
-        // --- Core Screen Sharing Logic ---
-
-        // Start Screen Sharing
-        btnStartShare.addEventListener('click', async () => {
-            try {
-                // Request display media (Screen/Window/Tab)
-                screenStream = await navigator.mediaDevices.getDisplayMedia({
-                    video: {
-                        cursor: "always",
-                        displaySurface: "monitor"
-                    },
-                    audio: {
-                        echoCancellation: true,
-                        noiseSuppression: true,
-                        sampleRate: 44100
-                    }
-                });
-
-                // Set stream to video element
-                videoElement.srcObject = screenStream;
-                
-                // UI Updates
-                videoPlaceholder.classList.add('hidden');
-                videoElement.classList.remove('hidden');
-                
-                btnStartShare.disabled = true;
-                btnStartShare.className = "px-5 py-2.5 bg-gray-100 text-gray-400 rounded-lg font-medium transition-all flex items-center gap-2 cursor-not-allowed opacity-60 hidden md:flex";
-                
-                btnStopShare.disabled = false;
-                btnStopShare.className = "px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 shadow-sm shadow-red-900/10";
-
-                btnStartRecord.disabled = false;
-                btnStartRecord.className = "px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 shadow-sm shadow-emerald-900/10";
-                iconRecord.className = "fa-solid fa-record-vinyl text-white";
-
-                statusIndicator.classList.remove('hidden');
-                statusIndicator.classList.add('flex');
-
-                showToast("Berhasil membagikan layar", "success");
-
-                // Listen for user stopping stream via browser built-in UI (e.g., Chrome's "Stop sharing" bar)
-                screenStream.getVideoTracks()[0].addEventListener('ended', stopScreenSharing);
-
-            } catch (error) {
-                console.error("Error accessing display media:", error);
-                if (error.name === 'NotAllowedError') {
-                    if (error.message.includes('permissions policy') || error.message.includes('display-capture')) {
-                        showToast("Akses diblokir oleh sistem Preview.", "error");
-                        
-                        // Update UI to inform the user about the iframe limitation
-                        const placeholderTitle = document.querySelector('#video-placeholder h2');
-                        const placeholderText = document.querySelector('#video-placeholder p');
-                        
-                        if (placeholderTitle) placeholderTitle.innerText = "Akses Diblokir oleh Browser";
-                        if (placeholderText) {
-                            placeholderText.innerHTML = `
-                                <span class="text-red-500 font-medium">Browser memblokir fitur berbagi layar di dalam mode Preview (Iframe).</span><br><br>
-                                <strong>Solusi:</strong> Silakan ekspor/unduh file ini, atau jalankan file HTML ini langsung di tab/jendela browser baru untuk mengaktifkan fitur berbagi layar.
-                            `;
-                        }
-                    } else {
-                        showToast("Izin ditolak atau dibatalkan oleh pengguna", "error");
-                    }
-                } else {
-                    showToast("Gagal membagikan layar: " + error.message, "error");
-                }
-            }
-        });
-
-        // Stop Screen Sharing
-        function stopScreenSharing() {
-            if (!screenStream) return;
-
-            // Stop all tracks (video and audio)
-            let tracks = screenStream.getTracks();
-            tracks.forEach(track => track.stop());
-
-            // Clear video source
-            videoElement.srcObject = null;
-            screenStream = null;
-
-            // If recording was active, stop it
-            if (mediaRecorder && mediaRecorder.state === "recording") {
-                stopRecording();
-            }
-
-            // UI Updates
-            videoPlaceholder.classList.remove('hidden');
+            // Tampilkan kembali placeholder jika sempat disembunyikan
             videoElement.classList.add('hidden');
-            
-            btnStartShare.disabled = false;
-            btnStartShare.className = "px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 shadow-sm shadow-blue-900/10";
-            
-            btnStopShare.disabled = true;
-            btnStopShare.className = "px-5 py-2.5 bg-gray-100 text-gray-400 rounded-lg font-medium transition-all flex items-center gap-2 cursor-not-allowed opacity-60";
+            videoPlaceholder.classList.remove('hidden');
+            videoPlaceholder.classList.add('bg-red-50/95'); // Beri warna merah muda
 
-            btnStartRecord.disabled = true;
-            btnStartRecord.className = "px-5 py-2.5 bg-gray-100 text-gray-400 rounded-lg font-medium transition-all flex items-center gap-2 cursor-not-allowed opacity-60";
-            iconRecord.className = "fa-solid fa-record-vinyl text-gray-400";
-            
-            btnStopRecord.classList.add('hidden');
-            btnStartRecord.classList.remove('hidden');
-
-            statusIndicator.classList.add('hidden');
-            statusIndicator.classList.remove('flex');
-
-            showToast("Berbagi layar dihentikan", "info");
-        }
-
-        btnStopShare.addEventListener('click', stopScreenSharing);
-
-        // --- Recording Logic ---
-
-        function formatTime(seconds) {
-            const h = Math.floor(seconds / 3600);
-            const m = Math.floor((seconds % 3600) / 60);
-            const s = seconds % 60;
-            if (h > 0) {
-                return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            if (placeholderTitle) placeholderTitle.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-500"></i> Akses Diblokir Iframe';
+            if (placeholderText) {
+                placeholderText.innerHTML = `
+                    <span class="text-red-600 font-medium">Sistem keamanan browser memblokir fitur berbagi layar di dalam mode Preview/Iframe.</span><br><br>
+                    <strong>Solusi:</strong> Anda tidak bisa menjalankan perekaman layar di dalam panel Preview. Silakan simpan kode ini menjadi file <code>.html</code> dan buka langsung di <strong>Tab Baru</strong> browser Anda.
+                `;
             }
-            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        } else if (error.name === 'NotAllowedError') {
+            showToast("Izin ditolak atau dibatalkan oleh pengguna.", "error");
+        } else {
+            showToast("Terjadi kesalahan: " + errMsg, "error");
         }
+    }
 
-        function startRecordingTimer() {
-            recordingSeconds = 0;
-            recordingTimeText.innerText = formatTime(recordingSeconds);
-            recordingOverlay.classList.remove('hidden');
+    // ==========================================
+    // 1. LOKAL & REKAM LAYAR (Mode Offline/Lokal)
+    // ==========================================
+    btnStartShare.addEventListener('click', async () => {
+        try {
+            screenStream = await navigator.mediaDevices.getDisplayMedia({
+                video: { cursor: "always" },
+                audio: { echoCancellation: true }
+            });
+            videoElement.srcObject = screenStream;
+            videoPlaceholder.classList.add('hidden');
+            videoElement.classList.remove('hidden');
             
-            recordingTimer = setInterval(() => {
-                recordingSeconds++;
-                recordingTimeText.innerText = formatTime(recordingSeconds);
-            }, 1000);
-        }
+            btnStartShare.disabled = true;
+            btnStartShare.classList.add('opacity-60', 'cursor-not-allowed');
+            btnStopShare.disabled = false;
+            btnStopShare.className = "px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium text-sm transition-all flex items-center gap-2 shadow-sm";
+            btnStartRecord.disabled = false;
+            btnStartRecord.className = "px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium text-sm transition-all flex items-center gap-2 shadow-sm";
 
-        function stopRecordingTimer() {
+            statusIndicator.classList.remove('hidden');
+            statusIndicator.classList.add('flex');
+            document.getElementById('status-text').innerText = "Sedang Membagikan Layar";
+
+            screenStream.getVideoTracks()[0].addEventListener('ended', stopScreenSharing);
+            showToast("Berhasil membagikan layar (Lokal)", "success");
+        } catch (error) {
+            handleScreenError(error);
+        }
+    });
+
+    function stopScreenSharing() {
+        if (!screenStream) return;
+        screenStream.getTracks().forEach(track => track.stop());
+        videoElement.srcObject = null;
+        screenStream = null;
+
+        if (mediaRecorder && mediaRecorder.state === "recording") stopRecording();
+
+        videoPlaceholder.classList.remove('hidden');
+        videoElement.classList.add('hidden');
+        
+        btnStartShare.disabled = false;
+        btnStartShare.classList.remove('opacity-60', 'cursor-not-allowed');
+        
+        btnStopShare.disabled = true;
+        btnStopShare.className = "px-4 py-2 bg-gray-100 text-gray-400 rounded-lg font-medium text-sm transition-all flex items-center gap-2 cursor-not-allowed opacity-60";
+        btnStartRecord.disabled = true;
+        btnStartRecord.className = "px-4 py-2 bg-gray-100 text-gray-400 rounded-lg font-medium text-sm transition-all flex items-center gap-2 cursor-not-allowed opacity-60";
+        
+        btnStopRecord.classList.add('hidden');
+        btnStartRecord.classList.remove('hidden');
+        statusIndicator.classList.add('hidden');
+        statusIndicator.classList.remove('flex');
+    }
+    btnStopShare.addEventListener('click', stopScreenSharing);
+
+    // --- Recording Logic ---
+    function formatTime(seconds) {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
+    btnStartRecord.addEventListener('click', () => {
+        if (!screenStream) return showToast("Mulai berbagi layar terlebih dahulu", "error");
+        
+        recordedChunks = [];
+        let mimeType = MediaRecorder.isTypeSupported('video/webm; codecs=vp9,opus') ? 'video/webm; codecs=vp9,opus' : 'video/webm';
+
+        try { mediaRecorder = new MediaRecorder(screenStream, { mimeType }); } 
+        catch (e) { return showToast("Perekaman tidak didukung browser ini.", "error"); }
+
+        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(recordedChunks, { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Rekaman-Layar-${new Date().getTime()}.webm`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            showToast("Rekaman berhasil diunduh!", "success");
+        };
+
+        mediaRecorder.start();
+        recordingSeconds = 0;
+        recordingOverlay.classList.remove('hidden');
+        recordingTimer = setInterval(() => {
+            recordingSeconds++;
+            recordingTimeText.innerText = formatTime(recordingSeconds);
+        }, 1000);
+
+        btnStartRecord.classList.add('hidden');
+        btnStopRecord.classList.remove('hidden');
+        btnStopRecord.disabled = false;
+        btnStopRecord.className = "px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium text-sm transition-all flex items-center gap-2 shadow-sm";
+        showToast("Perekaman dimulai", "info");
+    });
+
+    function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state === "recording") {
+            mediaRecorder.stop();
             clearInterval(recordingTimer);
             recordingOverlay.classList.add('hidden');
+
+            btnStopRecord.classList.add('hidden');
+            btnStartRecord.classList.remove('hidden');
+            btnStartRecord.disabled = false;
+            btnStartRecord.className = "px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium text-sm transition-all flex items-center gap-2 shadow-sm";
         }
+    }
+    btnStopRecord.addEventListener('click', stopRecording);
 
-        btnStartRecord.addEventListener('click', () => {
-            if (!screenStream) {
-                showToast("Mulai berbagi layar terlebih dahulu untuk merekam", "error");
-                return;
+
+    // ==========================================
+    // 2. ONLINE WEBRTC (Mode Host & Client)
+    // ==========================================
+    
+    // --- Host ---
+    btnHost.addEventListener('click', async () => {
+        if (!user) {
+            if (Object.keys(firebaseConfig).length === 0) {
+                return showToast("Fitur Online butuh server. Jalankan di dalam platform aslinya.", "error");
             }
+            return showToast("Server sedang menyiapkan koneksi, tunggu sebentar.", "info");
+        }
+        
+        try {
+            // Get Display Media first
+            screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+            videoElement.srcObject = screenStream;
+            videoPlaceholder.classList.add('hidden');
+            videoElement.classList.remove('hidden');
 
-            recordedChunks = [];
+            // Setup WebRTC
+            peerConnection = new RTCPeerConnection(rtcConfig);
+            screenStream.getTracks().forEach(track => peerConnection.addTrack(track, screenStream));
             
-            // Determine supported mimeType
-            let mimeType = 'video/webm; codecs=vp9,opus';
-            if (!MediaRecorder.isTypeSupported(mimeType)) {
-                mimeType = 'video/webm; codecs=vp8,opus';
-                if (!MediaRecorder.isTypeSupported(mimeType)) {
-                    mimeType = 'video/webm'; // Fallback
-                }
-            }
+            // Handle Stop from browser UI
+            screenStream.getVideoTracks()[0].addEventListener('ended', stopOnlineMode);
 
-            try {
-                mediaRecorder = new MediaRecorder(screenStream, { mimeType: mimeType });
-            } catch (e) {
-                showToast("Browser tidak mendukung perekaman format ini.", "error");
-                return;
-            }
+            // Generate Room ID and Reference
+            currentRoomId = Math.floor(10000 + Math.random() * 90000).toString();
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoomId);
 
-            mediaRecorder.ondataavailable = function(e) {
-                if (e.data.size > 0) {
-                    recordedChunks.push(e.data);
+            // Handle ICE Candidates
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    updateDoc(roomRef, { hostCandidates: arrayUnion(event.candidate.toJSON()) });
                 }
             };
 
-            mediaRecorder.onstop = function() {
-                const blob = new Blob(recordedChunks, {
-                    type: mimeType
-                });
-                
-                // Create download link
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                document.body.appendChild(a);
-                a.style = 'display: none';
-                a.href = url;
-                a.download = `Rekaman-Layar-${new Date().getTime()}.webm`;
-                a.click();
-                
-                // Cleanup
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-                showToast("Rekaman berhasil diunduh!", "success");
+            // Create Offer
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+
+            // Save to Firestore
+            await setDoc(roomRef, {
+                offer: { type: offer.type, sdp: offer.sdp },
+                hostCandidates: [],
+                clientCandidates: []
+            });
+
+            // Listen for Client Answer & Candidates
+            unsubscribeRoom = onSnapshot(roomRef, async snapshot => {
+                const data = snapshot.data();
+                if (!peerConnection.currentRemoteDescription && data && data.answer) {
+                    await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+                    showToast("Client berhasil terhubung!", "success");
+                }
+                if (data && data.clientCandidates) {
+                    data.clientCandidates.forEach(async c => {
+                        try { await peerConnection.addIceCandidate(new RTCIceCandidate(c)); } catch(e) {}
+                    });
+                }
+            });
+
+            // Update UI
+            document.getElementById('display-room-id').innerText = currentRoomId;
+            onlineControls.classList.add('hidden');
+            roomInfo.classList.remove('hidden');
+            roomInfo.classList.add('flex');
+            
+            statusIndicator.classList.remove('hidden');
+            statusIndicator.classList.add('flex');
+            document.getElementById('status-text').innerText = "Host Online Berjalan";
+            
+            showToast(`Room dibuat! ID: ${currentRoomId}`, "success");
+
+        } catch (error) {
+            handleScreenError(error);
+        }
+    });
+
+    // --- Client ---
+    btnJoin.addEventListener('click', async () => {
+        const roomId = inputRoomId.value.trim();
+        if (!roomId || roomId.length !== 5) return showToast("Masukkan 5 digit Room ID yang valid", "error");
+        
+        if (!user) {
+            if (Object.keys(firebaseConfig).length === 0) {
+                return showToast("Fitur Online butuh server. Jalankan di dalam platform aslinya.", "error");
+            }
+            return showToast("Server sedang menyiapkan koneksi, tunggu sebentar.", "info");
+        }
+
+        const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId);
+        const snap = await getDoc(roomRef);
+
+        if (!snap.exists()) {
+            return showToast("Room ID tidak ditemukan atau sudah ditutup.", "error");
+        }
+
+        try {
+            peerConnection = new RTCPeerConnection(rtcConfig);
+
+            // Listen for Remote Stream
+            peerConnection.ontrack = (event) => {
+                videoElement.srcObject = event.streams[0];
+                videoPlaceholder.classList.add('hidden');
+                videoElement.classList.remove('hidden');
             };
 
-            mediaRecorder.start();
-            startRecordingTimer();
+            // Handle ICE Candidates
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    updateDoc(roomRef, { clientCandidates: arrayUnion(event.candidate.toJSON()) });
+                }
+            };
 
-            // UI Updates
-            btnStartRecord.classList.add('hidden');
-            
-            btnStopRecord.classList.remove('hidden');
-            btnStopRecord.disabled = false;
-            btnStopRecord.className = "px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 shadow-sm shadow-red-900/10";
-            
-            showToast("Perekaman dimulai", "info");
-        });
+            // Process Offer from Host
+            const data = snap.data();
+            if (data.offer) {
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
 
-        function stopRecording() {
-            if (mediaRecorder && mediaRecorder.state === "recording") {
-                mediaRecorder.stop();
-                stopRecordingTimer();
-
-                // UI Updates
-                btnStopRecord.classList.add('hidden');
-                
-                btnStartRecord.classList.remove('hidden');
-                btnStartRecord.disabled = false;
-                btnStartRecord.className = "px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 shadow-sm shadow-emerald-900/10";
-                iconRecord.className = "fa-solid fa-record-vinyl text-white";
+                // Send Answer back
+                await updateDoc(roomRef, { answer: { type: answer.type, sdp: answer.sdp } });
             }
+
+            // Listen for Host Candidates
+            unsubscribeRoom = onSnapshot(roomRef, async snapshot => {
+                const data = snapshot.data();
+                if (data && data.hostCandidates) {
+                    data.hostCandidates.forEach(async c => {
+                        try { await peerConnection.addIceCandidate(new RTCIceCandidate(c)); } catch(e) {}
+                    });
+                }
+            });
+
+            // Update UI
+            currentRoomId = roomId;
+            document.getElementById('display-room-id').innerText = currentRoomId;
+            onlineControls.classList.add('hidden');
+            roomInfo.classList.remove('hidden');
+            roomInfo.classList.add('flex');
+            
+            statusIndicator.classList.remove('hidden');
+            statusIndicator.classList.add('flex');
+            document.getElementById('status-text').innerText = "Menonton Layar";
+
+            showToast("Menghubungkan ke Host...", "info");
+
+        } catch (error) {
+            console.error("Gagal join room:", error);
+            showToast("Terjadi kesalahan saat bergabung.", "error");
+        }
+    });
+
+    // --- Stop Online Mode ---
+    function stopOnlineMode() {
+        // Close Peer Connection
+        if (peerConnection) {
+            peerConnection.close();
+            peerConnection = null;
+        }
+        
+        // Stop screen tracks if we were the host
+        if (screenStream) {
+            screenStream.getTracks().forEach(t => t.stop());
+            screenStream = null;
         }
 
-        btnStopRecord.addEventListener('click', stopRecording);
-
-
-        // --- Modal Logic ---
-        
-        // Show modal on first load (optional, currently triggered by user or auto)
-        setTimeout(() => {
-            infoModal.classList.remove('hidden');
-        }, 500);
-
-        function closeModal() {
-            infoModal.classList.add('hidden');
+        // Stop Listening to Firestore
+        if (unsubscribeRoom) {
+            unsubscribeRoom();
+            unsubscribeRoom = null;
         }
 
-        btnCloseModal.addEventListener('click', closeModal);
-        btnUnderstand.addEventListener('click', closeModal);
-        
-        // Close modal on outside click
-        infoModal.addEventListener('click', (e) => {
-            if (e.target === infoModal) closeModal();
-        });
+        // Reset UI
+        videoElement.srcObject = null;
+        videoPlaceholder.classList.remove('hidden');
+        videoElement.classList.add('hidden');
 
-    </script>
+        roomInfo.classList.add('hidden');
+        roomInfo.classList.remove('flex');
+        onlineControls.classList.remove('hidden');
+        
+        statusIndicator.classList.add('hidden');
+        statusIndicator.classList.remove('flex');
+        
+        inputRoomId.value = '';
+        currentRoomId = null;
+
+        showToast("Koneksi Online diputus", "info");
+    }
+    btnStopOnline.addEventListener('click', stopOnlineMode);
+
+    // Copy Room ID Utility
+    btnCopyRoom.addEventListener('click', () => {
+        if (!currentRoomId) return;
+        const tempInput = document.createElement('input');
+        tempInput.value = currentRoomId;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        showToast("Room ID berhasil disalin!", "success");
+    });
+
+    // --- Modal Logic ---
+    setTimeout(() => infoModal.classList.remove('hidden'), 500);
+    function closeModal() { infoModal.classList.add('hidden'); }
+    btnCloseModal.addEventListener('click', closeModal);
+    btnUnderstand.addEventListener('click', closeModal);
+    infoModal.addEventListener('click', (e) => { if (e.target === infoModal) closeModal(); });
+
+</script>
 </body>
 </html>
